@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 3;
 
@@ -15,7 +15,6 @@ function Profile() {
     const [totalPagesAuctions, setTotalPagesAuctions] = useState(1);
     const [totalPagesBids, setTotalPagesBids] = useState(1);
     const [totalPagesWon, setTotalPagesWon] = useState(1);
-	const navigate = useNavigate();
 
 	useEffect(() => {
         const fetchUser = async () => {
@@ -25,7 +24,7 @@ function Profile() {
                 ?.split("=")[1];
             if (!token) {
                 console.error("No token found. Redirecting to login...");
-                navigate("/login", { replace: true });
+                window.location.href = "/login";
                 return;
             }
             try {
@@ -41,7 +40,7 @@ function Profile() {
                 console.error("Error fetching user:", error);
                 if (error.response?.status === 401) {
                     console.error("Unauthorized. Redirecting to login...");
-                    navigate("/login", { replace: true });
+                    window.location.href = "/login";
                 }
             }
         };

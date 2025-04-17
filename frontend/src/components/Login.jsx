@@ -6,40 +6,40 @@ import { FiMail, FiLock } from "react-icons/fi";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 function Login() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const navigate = useNavigate();
-    const { isLoggedIn, login } = useAuth();
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState("");
+	const navigate = useNavigate();
+	const { isLoggedIn, login } = useAuth();
 
-    useEffect(() => {
-        if (isLoggedIn && window.location.pathname === "/login") {
-            navigate("/profile", { replace: true });
-        }
-    }, [isLoggedIn, navigate]);
+	useEffect(() => {
+		if (isLoggedIn) {
+			// Redirect if logged in, regardless of current path
+			navigate("/profile", { replace: true });
+		}
+	}, [isLoggedIn, navigate]); // Added navigate to dependencies
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setError("");
-        try {
-            const res = await axios.post(
-                import.meta.env.VITE_API_URL + "/api/users/login",
-                { email, password },
-                { withCredentials: true }
-            );
-            if (res.status === 200) {
-                login(); // Update auth state
-                // Let useEffect handle navigation
-            }
-        } catch (err) {
-            setError(err.response?.data?.message || "Login failed");
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
+	const handleLogin = async (e) => {
+		e.preventDefault();
+		setLoading(true);
+		setError("");
+		try {
+			const res = await axios.post(
+				import.meta.env.VITE_API_URL + "/api/users/login",
+				{ email, password },
+				{ withCredentials: true }
+			);
+			if (res.status === 200) {
+				login(); // Update auth state ONLY
+				// Navigation is now handled by useEffect
+			}
+		} catch (err) {
+			setError(err.response?.data?.message || "An error occurred");
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	return (
 		<div
