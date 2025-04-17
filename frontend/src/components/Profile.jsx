@@ -17,36 +17,32 @@ function Profile() {
     const [totalPagesWon, setTotalPagesWon] = useState(1);
 
     const fetchWithAuth = async (url, method = "GET", body = {}) => {
-		const token = document.cookie
-			.split("; ")
-			.find((row) => row.startsWith("jwt="))
-			?.split("=")[1];
-		if (!token) {
-			console.error("No token found. Redirecting to login...");
-			if (!window.location.pathname.includes("/login")) {
-				window.location.href = "/login";
-			}
-			return null;
-		}
-		try {
-			const res = await axios({
-				url,
-				method,
-				data: body,
-				headers: { Authorization: `Bearer ${token}` },
-			});
-			return res.data;
-		} catch (error) {
-			console.error(`Error fetching ${url}:`, error);
-			if (error.response?.status === 401) {
-				console.error("Unauthorized. Redirecting to login...");
-				if (!window.location.pathname.includes("/login")) {
-					window.location.href = "/login";
-				}
-			}
-			return null;
-		}
-	};
+        const token = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("jwt="))
+            ?.split("=")[1];
+        if (!token) {
+            console.error("No token found. Redirecting to login...");
+            window.location.href = "/login";
+            return null;
+        }
+        try {
+            const res = await axios({
+                url,
+                method,
+                data: body,
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            return res.data;
+        } catch (error) {
+            console.error(`Error fetching ${url}:`, error);
+            if (error.response?.status === 401) {
+                console.error("Unauthorized. Redirecting to login...");
+                window.location.href = "/login";
+            }
+            return null;
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
