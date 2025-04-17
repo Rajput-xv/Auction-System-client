@@ -1,22 +1,20 @@
 import { Navigate, useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
+import { useAuth } from "../contexts/AuthContext";
 
 const ProtectedRoute = ({ component: Component, ...rest }) => {
-	const location = useLocation();
-	const token = document.cookie
-		.split("; ")
-		.find((row) => row.startsWith("jwt="))
-		?.split("=")[1];
+    const location = useLocation();
+    const { isLoggedIn } = useAuth();
 
-	return token ? (
-		<Component {...rest} />
-	) : (
-		<Navigate to="/login" state={{ from: location }} replace />
-	);
+    return isLoggedIn ? (
+        <Component {...rest} />
+    ) : (
+        <Navigate to="/login" state={{ from: location }} replace />
+    );
 };
 
 ProtectedRoute.propTypes = {
-	component: PropTypes.elementType.isRequired,
+    component: PropTypes.elementType.isRequired,
 };
 
 export default ProtectedRoute;

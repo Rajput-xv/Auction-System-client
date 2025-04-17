@@ -15,28 +15,24 @@ import CreateAuctionItem from "./components/CreateAuctionItem";
 import EditAuctionItem from "./components/EditAuctionItem";
 
 function App() {
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-	const login = () => {
-		setIsLoggedIn(true);
-	};
+    useEffect(() => {
+        const checkAuth = () => {
+            const token = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("jwt="))
+                ?.split("=")[1];
+            setIsLoggedIn(!!token);
+        };
 
-	const logout = () => {
-		setIsLoggedIn(false);
-	};
+        checkAuth();
+        const interval = setInterval(checkAuth, 1000); // Check auth every second
+        return () => clearInterval(interval);
+    }, []);
 
-	const token = document.cookie
-		.split("; ")
-		.find((row) => row.startsWith("jwt="))
-		?.split("=")[1];
-
-	useEffect(() => {
-		if (token) {
-			login();
-		} else {
-			logout();
-		}
-	}, [token]);
+    const login = () => setIsLoggedIn(true);
+    const logout = () => setIsLoggedIn(false);
 
 	return (
 		<AuthProvider value={{ isLoggedIn, login, logout }}>
