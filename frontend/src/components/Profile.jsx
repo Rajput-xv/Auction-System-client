@@ -16,135 +16,67 @@ function Profile() {
     const [totalPagesBids, setTotalPagesBids] = useState(1);
     const [totalPagesWon, setTotalPagesWon] = useState(1);
 
-	useEffect(() => {
-        const fetchUser = async () => {
-            const token = document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("jwt="))
-                ?.split("=")[1];
-            if (!token) {
-                console.error("No token found. Redirecting to login...");
+    const fetchWithAuth = async (url, method = "GET", body = {}) => {
+        const token = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("jwt="))
+            ?.split("=")[1];
+        if (!token) {
+            console.error("No token found. Redirecting to login...");
+            window.location.href = "/login";
+            return null;
+        }
+        try {
+            const res = await axios({
+                url,
+                method,
+                data: body,
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            return res.data;
+        } catch (error) {
+            console.error(`Error fetching ${url}:`, error);
+            if (error.response?.status === 401) {
+                console.error("Unauthorized. Redirecting to login...");
                 window.location.href = "/login";
-                return;
             }
-            try {
-                const res = await axios.post(
-                    import.meta.env.VITE_API_URL + "/api/users/profile",
-                    {},
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
-                setUser(res.data);
-            } catch (error) {
-                console.error("Error fetching user:", error);
-                if (error.response?.status === 401) {
-                    console.error("Unauthorized. Redirecting to login...");
-                    window.location.href = "/login";
-                }
-            }
-        };
+            return null;
+        }
+    };
 
-		const fetchAuctions = async () => {
-            const token = document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("jwt="))
-                ?.split("=")[1];
-            if (!token) {
-                console.error("No token found. Redirecting to login...");
-                window.location.href = "/login";
-                return;
-            }
-            try {
-                const res = await axios.post(
-                    import.meta.env.VITE_API_URL + "/api/auctions/user",
-                    {},
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
-                setAuctions(res.data.auctionItems);
+    useEffect(() => {
+        const fetchData = async () => {
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            const userData = await fetchWithAuth(`${apiUrl}/api/users/profile`);
+            if (userData) setUser(userData);
+
+            const auctionData = await fetchWithAuth(`${apiUrl}/api/auctions/user`);
+            if (auctionData) {
+                setAuctions(auctionData.auctionItems);
                 setTotalPagesAuctions(
-                    Math.ceil(res.data.auctionItems.length / ITEMS_PER_PAGE)
+                    Math.ceil(auctionData.auctionItems.length / ITEMS_PER_PAGE)
                 );
-            } catch (error) {
-                console.error("Error fetching auctions:", error);
-                if (error.response?.status === 401) {
-                    console.error("Unauthorized. Redirecting to login...");
-                    window.location.href = "/login";
-                }
             }
-        };
 
-		const fetchBids = async () => {
-            const token = document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("jwt="))
-                ?.split("=")[1];
-            if (!token) {
-                console.error("No token found. Redirecting to login...");
-                window.location.href = "/login";
-                return;
+            const bidData = await fetchWithAuth(`${apiUrl}/api/bids/user`);
+            if (bidData) {
+                setBids(bidData.bids);
+                setTotalPagesBids(Math.ceil(bidData.bids.length / ITEMS_PER_PAGE));
             }
-            try {
-                const res = await axios.post(
-                    import.meta.env.VITE_API_URL + "/api/bids/user",
-                    {},
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
-                setBids(res.data.bids);
-                setTotalPagesBids(
-                    Math.ceil(res.data.bids.length / ITEMS_PER_PAGE)
-                );
-            } catch (error) {
-                console.error("Error fetching bids:", error);
-                if (error.response?.status === 401) {
-                    console.error("Unauthorized. Redirecting to login...");
-                    window.location.href = "/login";
-                }
-            }
-        };
 
-		const fetchWonAuctions = async () => {
-            const token = document.cookie
-                .split("; ")
-                .find((row) => row.startsWith("jwt="))
-                ?.split("=")[1];
-            if (!token) {
-                console.error("No token found. Redirecting to login...");
-                window.location.href = "/login";
-                return;
-            }
-            try {
-                const res = await axios.post(
-                    import.meta.env.VITE_API_URL + "/api/auctions/won",
-                    {},
-                    {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }
-                );
-                setWonAuctions(res.data.wonAuctions);
+            const wonData = await fetchWithAuth(`${apiUrl}/api/auctions/won`);
+            if (wonData) {
+                setWonAuctions(wonData.wonAuctions);
                 setTotalPagesWon(
-                    Math.ceil(res.data.wonAuctions.length / ITEMS_PER_PAGE)
+                    Math.ceil(wonData.wonAuctions.length / ITEMS_PER_PAGE)
                 );
-            } catch (error) {
-                console.error("Error fetching won auctions:", error);
-                if (error.response?.status === 401) {
-                    console.error("Unauthorized. Redirecting to login...");
-                    window.location.href = "/login";
-                }
             }
         };
 
-		fetchUser();
-		fetchAuctions();
-		fetchBids();
-		fetchWonAuctions();
-	}, []);
+        fetchData();
+    }, []);
 
-	const handlePageChange = (page, type) => {
+    const handlePageChange = (page, type) => {
         if (page > 0) {
             if (type === "auctions") {
                 if (page <= totalPagesAuctions) setCurrentPageAuctions(page);
@@ -163,7 +95,7 @@ function Profile() {
         endIndexAuctions
     );
 
-	const startIndexBids = (currentPageBids - 1) * ITEMS_PER_PAGE;
+    const startIndexBids = (currentPageBids - 1) * ITEMS_PER_PAGE;
     const endIndexBids = startIndexBids + ITEMS_PER_PAGE;
     const paginatedBids = bids.slice(startIndexBids, endIndexBids);
 
