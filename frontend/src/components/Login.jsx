@@ -14,8 +14,9 @@ function Login() {
 	const { isLoggedIn, login } = useAuth();
 
 	useEffect(() => {
+        console.log("Navigation triggered:", isLoggedIn, window.location.pathname);
         if (isLoggedIn && window.location.pathname !== "/profile") {
-            navigate("/profile");
+            navigate("/profile", { replace: true });
         }
     }, [isLoggedIn, navigate]);
 
