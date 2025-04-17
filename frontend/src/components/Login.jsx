@@ -32,6 +32,7 @@ function Login() {
             );
             if (res.status === 200) {
                 login(); // Updates isLoggedIn to true
+                navigate("/profile", { replace: true }); // Redirect to profile
             }
         } catch (err) {
             console.error("Login error:", err);
