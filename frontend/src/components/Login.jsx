@@ -14,32 +14,31 @@ function Login() {
 	const { isLoggedIn, login } = useAuth();
 
 	useEffect(() => {
-		if (isLoggedIn) {
-			// Redirect if logged in, regardless of current path
-			navigate("/profile", { replace: true });
-		}
-	}, [isLoggedIn, navigate]); // Added navigate to dependencies
-
-	const handleLogin = async (e) => {
-		e.preventDefault();
-		setLoading(true);
-		setError("");
-		try {
-			const res = await axios.post(
-				import.meta.env.VITE_API_URL + "/api/users/login",
-				{ email, password },
-				{ withCredentials: true }
-			);
-			if (res.status === 200) {
-				login(); // Update auth state ONLY
-				// Navigation is now handled by useEffect
-			}
-		} catch (err) {
-			setError(err.response?.data?.message || "An error occurred");
-		} finally {
-			setLoading(false);
-		}
-	};
+        if (isLoggedIn) {
+            // Redirect if logged in
+            navigate("/profile", { replace: true });
+        }
+    }, [isLoggedIn, navigate]);
+    
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        try {
+            const res = await axios.post(
+                import.meta.env.VITE_API_URL + "/api/users/login",
+                { email, password },
+                { withCredentials: true }
+            );
+            if (res.status === 200) {
+                login(); // Updates isLoggedIn to true
+            }
+        } catch (err) {
+            setError(err.response?.data?.message || "An error occurred");
+        } finally {
+            setLoading(false);
+        }
+    };
 
 	return (
 		<div
