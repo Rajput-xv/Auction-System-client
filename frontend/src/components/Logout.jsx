@@ -10,16 +10,15 @@ function Logout() {
 	useEffect(() => {
 		const logout = async () => {
 			try {
-				await axios.post(import.meta.env.VITE_API_URL+"/api/users/logout", {});
-				document.cookie =
-					"jwt=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
-				signout();
-				navigate("/login");
+				await axios.post(import.meta.env.VITE_API_URL + "/api/users/logout", {});
+				document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+				signout(); // Update auth state
+				navigate("/login"); // Navigate after logout
 			} catch (err) {
 				console.error(err);
 			}
 		};
-
+	
 		logout();
 	}, [navigate, signout]);
 

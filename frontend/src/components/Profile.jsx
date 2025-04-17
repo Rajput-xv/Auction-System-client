@@ -5,110 +5,138 @@ import { Link } from "react-router-dom";
 const ITEMS_PER_PAGE = 3;
 
 function Profile() {
-	const [user, setUser] = useState(null);
-	const [auctions, setAuctions] = useState([]);
-	const [bids, setBids] = useState([]);
-	const [wonAuctions, setWonAuctions] = useState([]);
-	const [currentPageAuctions, setCurrentPageAuctions] = useState(1);
-	const [currentPageBids, setCurrentPageBids] = useState(1);
-	const [currentPageWon, setCurrentPageWon] = useState(1);
-	const [totalPagesAuctions, setTotalPagesAuctions] = useState(1);
-	const [totalPagesBids, setTotalPagesBids] = useState(1);
-	const [totalPagesWon, setTotalPagesWon] = useState(1);
+    const [user, setUser] = useState(null);
+    const [auctions, setAuctions] = useState([]);
+    const [bids, setBids] = useState([]);
+    const [wonAuctions, setWonAuctions] = useState([]);
+    const [currentPageAuctions, setCurrentPageAuctions] = useState(1);
+    const [currentPageBids, setCurrentPageBids] = useState(1);
+    const [currentPageWon, setCurrentPageWon] = useState(1);
+    const [totalPagesAuctions, setTotalPagesAuctions] = useState(1);
+    const [totalPagesBids, setTotalPagesBids] = useState(1);
+    const [totalPagesWon, setTotalPagesWon] = useState(1);
 
 	useEffect(() => {
-		const fetchUser = async () => {
-			const token = document.cookie
-				.split("; ")
-				.find((row) => row.startsWith("jwt="))
-				?.split("=")[1];
-			if (token) {
-				try {
-					const res = await axios.post(
-						import.meta.env.VITE_API_URL+"/api/users/profile",
-						{},
-						{
-							headers: { Authorization: `Bearer ${token}` },
-						}
-					);
-					setUser(res.data);
-				} catch (error) {
-					console.error(error);
-				}
-			}
-		};
+        const fetchUser = async () => {
+            const token = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("jwt="))
+                ?.split("=")[1];
+            if (!token) {
+                console.error("No token found. Redirecting to login...");
+                window.location.href = "/login";
+                return;
+            }
+            try {
+                const res = await axios.post(
+                    import.meta.env.VITE_API_URL + "/api/users/profile",
+                    {},
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                setUser(res.data);
+            } catch (error) {
+                console.error("Error fetching user:", error);
+                if (error.response?.status === 401) {
+                    console.error("Unauthorized. Redirecting to login...");
+                    window.location.href = "/login";
+                }
+            }
+        };
 
 		const fetchAuctions = async () => {
-			const token = document.cookie
-				.split("; ")
-				.find((row) => row.startsWith("jwt="))
-				?.split("=")[1];
-			if (token) {
-				try {
-					const res = await axios.post(
-						import.meta.env.VITE_API_URL+"/api/auctions/user",
-						{},
-						{
-							headers: { Authorization: `Bearer ${token}` },
-						}
-					);
-					setAuctions(res.data.auctionItems);
-					setTotalPagesAuctions(
-						Math.ceil(res.data.auctionItems.length / ITEMS_PER_PAGE)
-					);
-				} catch (error) {
-					console.error(error);
-				}
-			}
-		};
+            const token = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("jwt="))
+                ?.split("=")[1];
+            if (!token) {
+                console.error("No token found. Redirecting to login...");
+                window.location.href = "/login";
+                return;
+            }
+            try {
+                const res = await axios.post(
+                    import.meta.env.VITE_API_URL + "/api/auctions/user",
+                    {},
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                setAuctions(res.data.auctionItems);
+                setTotalPagesAuctions(
+                    Math.ceil(res.data.auctionItems.length / ITEMS_PER_PAGE)
+                );
+            } catch (error) {
+                console.error("Error fetching auctions:", error);
+                if (error.response?.status === 401) {
+                    console.error("Unauthorized. Redirecting to login...");
+                    window.location.href = "/login";
+                }
+            }
+        };
 
 		const fetchBids = async () => {
-			const token = document.cookie
-				.split("; ")
-				.find((row) => row.startsWith("jwt="))
-				?.split("=")[1];
-			if (token) {
-				try {
-					const res = await axios.post(
-						import.meta.env.VITE_API_URL+"/api/bids/user",
-						{},
-						{
-							headers: { Authorization: `Bearer ${token}` },
-						}
-					);
-					setBids(res.data.bids);
-					setTotalPagesBids(
-						Math.ceil(res.data.bids.length / ITEMS_PER_PAGE)
-					);
-				} catch (error) {
-					console.error(error);
-				}
-			}
-		};
+            const token = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("jwt="))
+                ?.split("=")[1];
+            if (!token) {
+                console.error("No token found. Redirecting to login...");
+                window.location.href = "/login";
+                return;
+            }
+            try {
+                const res = await axios.post(
+                    import.meta.env.VITE_API_URL + "/api/bids/user",
+                    {},
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                setBids(res.data.bids);
+                setTotalPagesBids(
+                    Math.ceil(res.data.bids.length / ITEMS_PER_PAGE)
+                );
+            } catch (error) {
+                console.error("Error fetching bids:", error);
+                if (error.response?.status === 401) {
+                    console.error("Unauthorized. Redirecting to login...");
+                    window.location.href = "/login";
+                }
+            }
+        };
 
 		const fetchWonAuctions = async () => {
-			const token = document.cookie
-				.split("; ")
-				.find((row) => row.startsWith("jwt="))
-				?.split("=")[1];
-			if (token) {
-				try {
-					const res = await axios.post(
-						import.meta.env.VITE_API_URL+"/api/auctions/won",
-						{},
-						{
-							headers: { Authorization: `Bearer ${token}` },
-						}
-					);
-					setWonAuctions(res.data.wonAuctions);
-					setTotalPagesWon(
-						Math.ceil(res.data.wonAuctions.length / ITEMS_PER_PAGE)
-					);
-				} catch (error) {
-					console.error(error);
-				}
-			}
-		};
+            const token = document.cookie
+                .split("; ")
+                .find((row) => row.startsWith("jwt="))
+                ?.split("=")[1];
+            if (!token) {
+                console.error("No token found. Redirecting to login...");
+                window.location.href = "/login";
+                return;
+            }
+            try {
+                const res = await axios.post(
+                    import.meta.env.VITE_API_URL + "/api/auctions/won",
+                    {},
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                setWonAuctions(res.data.wonAuctions);
+                setTotalPagesWon(
+                    Math.ceil(res.data.wonAuctions.length / ITEMS_PER_PAGE)
+                );
+            } catch (error) {
+                console.error("Error fetching won auctions:", error);
+                if (error.response?.status === 401) {
+                    console.error("Unauthorized. Redirecting to login...");
+                    window.location.href = "/login";
+                }
+            }
+        };
 
 		fetchUser();
 		fetchAuctions();
@@ -117,39 +145,39 @@ function Profile() {
 	}, []);
 
 	const handlePageChange = (page, type) => {
-		if (page > 0) {
-			if (type === "auctions") {
-				if (page <= totalPagesAuctions) setCurrentPageAuctions(page);
-			} else if (type === "bids") {
-				if (page <= totalPagesBids) setCurrentPageBids(page);
-			} else if (type === "won") {
-				if (page <= totalPagesWon) setCurrentPageWon(page);
-			}
-		}
-	};
+        if (page > 0) {
+            if (type === "auctions") {
+                if (page <= totalPagesAuctions) setCurrentPageAuctions(page);
+            } else if (type === "bids") {
+                if (page <= totalPagesBids) setCurrentPageBids(page);
+            } else if (type === "won") {
+                if (page <= totalPagesWon) setCurrentPageWon(page);
+            }
+        }
+    };
 
-	const startIndexAuctions = (currentPageAuctions - 1) * ITEMS_PER_PAGE;
-	const endIndexAuctions = startIndexAuctions + ITEMS_PER_PAGE;
-	const paginatedAuctions = auctions.slice(
-		startIndexAuctions,
-		endIndexAuctions
-	);
+    const startIndexAuctions = (currentPageAuctions - 1) * ITEMS_PER_PAGE;
+    const endIndexAuctions = startIndexAuctions + ITEMS_PER_PAGE;
+    const paginatedAuctions = auctions.slice(
+        startIndexAuctions,
+        endIndexAuctions
+    );
 
 	const startIndexBids = (currentPageBids - 1) * ITEMS_PER_PAGE;
-	const endIndexBids = startIndexBids + ITEMS_PER_PAGE;
-	const paginatedBids = bids.slice(startIndexBids, endIndexBids);
+    const endIndexBids = startIndexBids + ITEMS_PER_PAGE;
+    const paginatedBids = bids.slice(startIndexBids, endIndexBids);
 
-	const startIndexWon = (currentPageWon - 1) * ITEMS_PER_PAGE;
-	const endIndexWon = startIndexWon + ITEMS_PER_PAGE;
-	const paginatedWon = wonAuctions.slice(startIndexWon, endIndexWon);
+    const startIndexWon = (currentPageWon - 1) * ITEMS_PER_PAGE;
+    const endIndexWon = startIndexWon + ITEMS_PER_PAGE;
+    const paginatedWon = wonAuctions.slice(startIndexWon, endIndexWon);
 
-	if (!user) {
-		return (
-			<div className="flex items-center justify-center h-screen bg-gray-900">
-				<div className="w-32 h-32 border-t-2 border-b-2 border-purple-500 rounded-full animate-spin"></div>
-			</div>
-		);
-	}
+    if (!user) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-gray-900">
+                <div className="w-32 h-32 border-t-2 border-b-2 border-purple-500 rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
 	return (
 		<div className="min-h-screen px-4 py-12 text-gray-300 bg-gray-900 sm:px-6 lg:px-8">
