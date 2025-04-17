@@ -46,7 +46,7 @@ function Signup() {
 			className="flex items-center justify-center min-h-screen bg-gray-700 bg-cover bg-center"
 			style={{
 				backgroundImage:
-					"url('https://source.unsplash.com/1600x900/?signup,technology')",
+					"url('https://picsum.photos/seed/techlogin/1600/900')",
 			}}
 		>
 			<div className="w-full max-w-md p-8 bg-gray-800 bg-opacity-80 rounded-lg shadow-lg">
