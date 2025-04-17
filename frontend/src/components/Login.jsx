@@ -13,11 +13,16 @@ function Login() {
 	const navigate = useNavigate();
 	const { isLoggedIn, login } = useAuth();
 
-	useEffect(() => {
-        console.log("Navigation triggered:", isLoggedIn, window.location.pathname);
+	let navigationTimeout;
+
+    useEffect(() => {
         if (isLoggedIn && window.location.pathname !== "/profile") {
-            navigate("/profile", { replace: true });
+            clearTimeout(navigationTimeout);
+            navigationTimeout = setTimeout(() => {
+                navigate("/profile", { replace: true });
+            }, 300); // Delay navigation by 300ms
         }
+        return () => clearTimeout(navigationTimeout);
     }, [isLoggedIn, navigate]);
 
 	const handleLogin = async (e) => {
