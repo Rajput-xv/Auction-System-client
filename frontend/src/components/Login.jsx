@@ -14,10 +14,10 @@ function Login() {
 	const { isLoggedIn, login } = useAuth();
 
 	useEffect(() => {
-		if (isLoggedIn) {
-			navigate("/profile");
-		}
-	}, [isLoggedIn, navigate]);
+        if (isLoggedIn && window.location.pathname !== "/profile") {
+            navigate("/profile");
+        }
+    }, [isLoggedIn, navigate]);
 
 	const handleLogin = async (e) => {
         e.preventDefault();
