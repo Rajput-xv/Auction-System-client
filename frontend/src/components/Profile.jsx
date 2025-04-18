@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const ITEMS_PER_PAGE = 3;
 
 function Profile() {
-    const [user, setUser] = useState(null);
+    const { user } = useAuth();
     const [auctions, setAuctions] = useState([]);
     const [bids, setBids] = useState([]);
     const [wonAuctions, setWonAuctions] = useState([]);
@@ -21,11 +22,9 @@ function Profile() {
             .split("; ")
             .find((row) => row.startsWith("jwt="))
             ?.split("=")[1];
-        if (!token) {
-            console.error("No token found. Redirecting to login...");
-            window.location.href = "/login";
-            return null;
-        }
+        
+        if (!token) return null;
+
         try {
             const res = await axios({
                 url,
@@ -47,9 +46,8 @@ function Profile() {
     useEffect(() => {
         const fetchData = async () => {
             const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-            const userData = await fetchWithAuth(`${apiUrl}/api/users/profile`);
-            if (userData) setUser(userData);
-
+            
+            // Fetch auctions
             const auctionData = await fetchWithAuth(`${apiUrl}/api/auctions/user`);
             if (auctionData) {
                 setAuctions(auctionData.auctionItems);
@@ -58,12 +56,14 @@ function Profile() {
                 );
             }
 
+            // Fetch bids
             const bidData = await fetchWithAuth(`${apiUrl}/api/bids/user`);
             if (bidData) {
                 setBids(bidData.bids);
                 setTotalPagesBids(Math.ceil(bidData.bids.length / ITEMS_PER_PAGE));
             }
 
+            // Fetch won auctions
             const wonData = await fetchWithAuth(`${apiUrl}/api/auctions/won`);
             if (wonData) {
                 setWonAuctions(wonData.wonAuctions);
@@ -73,8 +73,10 @@ function Profile() {
             }
         };
 
-        fetchData();
-    }, []);
+        if (user) {
+            fetchData();
+        }
+    }, [user]);
 
     const handlePageChange = (page, type) => {
         if (page > 0) {

@@ -13,12 +13,6 @@ function Login() {
     const navigate = useNavigate();
     const { isLoggedIn, login } = useAuth();
 
-    useEffect(() => {
-        if (isLoggedIn) {
-            navigate("/profile", { replace: true });
-        }
-    }, [isLoggedIn, navigate]);
-
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -30,12 +24,14 @@ function Login() {
                 { email, password },
                 { withCredentials: true }
             );
-            if (res.status === 200) {
-                login(); // Updates isLoggedIn to true
+            
+            if (res.data.success) {
+                // Update auth context with user data
+                login(res.data.user);  // Pass user data to context
+                navigate("/profile", { replace: true });
             }
         } catch (err) {
-            console.error("Login error:", err);
-            setError(err.response?.data?.message || "An error occurred");
+            setError(err.response?.data?.message || "Login failed");
         } finally {
             setLoading(false);
         }
