@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { FiMail, FiLock } from "react-icons/fi";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -11,29 +11,12 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const navigate = useNavigate();
-    const location = useLocation();
     const { isLoggedIn, login } = useAuth();
-    
-    // Redirect if already logged in
-    useEffect(() => {
-        if (isLoggedIn) {
-            const from = location.state?.from?.pathname || "/profile";
-            navigate(from, { replace: true });
-        }
-    }, [isLoggedIn, navigate, location]);
-    
-    // Display message from location state if present
-    useEffect(() => {
-        if (location.state?.message) {
-            setError(location.state.message);
-        }
-    }, [location.state]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError("");
-        
         try {
             const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
             const res = await axios.post(
@@ -45,10 +28,7 @@ function Login() {
             if (res.data.success) {
                 // Update auth context with user data
                 login(res.data.user);  // Pass user data to context
-                
-                // Navigate to the page the user was trying to access, or to profile
-                const from = location.state?.from?.pathname || "/profile";
-                navigate(from, { replace: true });
+                navigate("/profile", { replace: true });
             }
         } catch (err) {
             setError(err.response?.data?.message || "Login failed");

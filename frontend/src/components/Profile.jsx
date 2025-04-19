@@ -1,241 +1,117 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 const ITEMS_PER_PAGE = 3;
 
 function Profile() {
-    const { user, isLoggedIn } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
-    
-    // State for data
+    const { user } = useAuth();
     const [auctions, setAuctions] = useState([]);
     const [bids, setBids] = useState([]);
     const [wonAuctions, setWonAuctions] = useState([]);
-    
-    // State for pagination
     const [currentPageAuctions, setCurrentPageAuctions] = useState(1);
     const [currentPageBids, setCurrentPageBids] = useState(1);
     const [currentPageWon, setCurrentPageWon] = useState(1);
     const [totalPagesAuctions, setTotalPagesAuctions] = useState(1);
     const [totalPagesBids, setTotalPagesBids] = useState(1);
     const [totalPagesWon, setTotalPagesWon] = useState(1);
-    
-    // State for loading and errors
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [successMessage, setSuccessMessage] = useState("");
 
-    // Check for success message from navigation state
-    useEffect(() => {
-        if (location.state?.message) {
-            setSuccessMessage(location.state.message);
-            // Clear the message after 5 seconds
-            const timer = setTimeout(() => {
-                setSuccessMessage("");
-                // Clear navigation state to prevent message reappearing on refresh
-                window.history.replaceState({}, document.title);
-            }, 5000);
-            return () => clearTimeout(timer);
-        }
-    }, [location.state]);
-
-    // Enhanced fetchWithAuth function with better error handling
-    const fetchWithAuth = useCallback(async (url, method = "GET", body = {}) => {
+    const fetchWithAuth = async (url, method = "GET", body = {}) => {
         const token = document.cookie
             .split("; ")
             .find((row) => row.startsWith("jwt="))
             ?.split("=")[1];
-            
-        if (!token) {
-            navigate("/login", { state: { message: "Please log in to view your profile" } });
-            return null;
-        }
         
+        if (!token) return null;
+
         try {
             const res = await axios({
                 url,
                 method,
                 data: body,
                 headers: { Authorization: `Bearer ${token}` },
-                withCredentials: true
             });
             return res.data;
         } catch (error) {
             console.error(`Error fetching ${url}:`, error);
             if (error.response?.status === 401) {
-                navigate("/login", { state: { message: "Your session has expired. Please log in again." } });
+                console.error("Unauthorized. Redirecting to login...");
+                window.location.href = "/login";
             }
-            throw error;
+            return null;
         }
-    }, [navigate]);
+    };
 
-    // Fetch data with proper error handling and loading states
     useEffect(() => {
-        // Redirect if not logged in
-        if (!isLoggedIn && !user) {
-            navigate("/login", { state: { message: "Please log in to view your profile" } });
-            return;
-        }
-
         const fetchData = async () => {
-            setLoading(true);
-            setError(null);
+            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
             
-            try {
-                const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-                
-                // Fetch all data in parallel for better performance
-                const [auctionData, bidData, wonData] = await Promise.allSettled([
-                    fetchWithAuth(`${apiUrl}/api/auctions/user`),
-                    fetchWithAuth(`${apiUrl}/api/bids/user`),
-                    fetchWithAuth(`${apiUrl}/api/auctions/won`)
-                ]);
-                
-                // Handle auctions data
-                if (auctionData.status === 'fulfilled' && auctionData.value) {
-                    const items = auctionData.value.auctionItems || [];
-                    setAuctions(items);
-                    setTotalPagesAuctions(Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE)));
-                } else {
-                    console.error("Failed to fetch auctions:", auctionData.reason);
-                    setError(prev => prev || "Failed to load your auctions. Please try again.");
-                }
-                
-                // Handle bids data
-                if (bidData.status === 'fulfilled' && bidData.value) {
-                    const items = bidData.value.bids || [];
-                    setBids(items);
-                    setTotalPagesBids(Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE)));
-                } else {
-                    console.error("Failed to fetch bids:", bidData.reason);
-                    setError(prev => prev || "Failed to load your bids. Please try again.");
-                }
-                
-                // Handle won auctions data
-                if (wonData.status === 'fulfilled' && wonData.value) {
-                    const items = wonData.value.wonAuctions || [];
-                    setWonAuctions(items);
-                    setTotalPagesWon(Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE)));
-                } else {
-                    console.error("Failed to fetch won auctions:", wonData.reason);
-                    setError(prev => prev || "Failed to load your won auctions. Please try again.");
-                }
-                
-            } catch (err) {
-                console.error("Error fetching profile data:", err);
-                setError("Failed to load profile data. Please try again.");
-            } finally {
-                setLoading(false);
+            // Fetch auctions
+            const auctionData = await fetchWithAuth(`${apiUrl}/api/auctions/user`);
+            if (auctionData) {
+                setAuctions(auctionData.auctionItems);
+                setTotalPagesAuctions(
+                    Math.ceil(auctionData.auctionItems.length / ITEMS_PER_PAGE)
+                );
+            }
+
+            // Fetch bids
+            const bidData = await fetchWithAuth(`${apiUrl}/api/bids/user`);
+            if (bidData) {
+                setBids(bidData.bids);
+                setTotalPagesBids(Math.ceil(bidData.bids.length / ITEMS_PER_PAGE));
+            }
+
+            // Fetch won auctions
+            const wonData = await fetchWithAuth(`${apiUrl}/api/auctions/won`);
+            if (wonData) {
+                setWonAuctions(wonData.wonAuctions);
+                setTotalPagesWon(
+                    Math.ceil(wonData.wonAuctions.length / ITEMS_PER_PAGE)
+                );
             }
         };
 
         if (user) {
             fetchData();
         }
-    }, [user, isLoggedIn, navigate, fetchWithAuth]);
+    }, [user]);
 
-    // Handle page changes for pagination
-    const handlePageChange = useCallback((page, type) => {
+    const handlePageChange = (page, type) => {
         if (page > 0) {
-            if (type === "auctions" && page <= totalPagesAuctions) {
-                setCurrentPageAuctions(page);
-            } else if (type === "bids" && page <= totalPagesBids) {
-                setCurrentPageBids(page);
-            } else if (type === "won" && page <= totalPagesWon) {
-                setCurrentPageWon(page);
+            if (type === "auctions") {
+                if (page <= totalPagesAuctions) setCurrentPageAuctions(page);
+            } else if (type === "bids") {
+                if (page <= totalPagesBids) setCurrentPageBids(page);
+            } else if (type === "won") {
+                if (page <= totalPagesWon) setCurrentPageWon(page);
             }
         }
-    }, [totalPagesAuctions, totalPagesBids, totalPagesWon]);
+    };
 
-    // Handle auction deletion with confirmation
-    const handleDeleteAuction = useCallback(async (auctionId) => {
-        if (!window.confirm("Are you sure you want to delete this auction? This action cannot be undone.")) {
-            return;
-        }
-        
-        try {
-            const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-            await fetchWithAuth(`${apiUrl}/api/auctions/${auctionId}`, "DELETE");
-            
-            // Update local state to remove the deleted auction
-            setAuctions(prev => prev.filter(auction => auction._id !== auctionId));
-            setSuccessMessage("Auction deleted successfully!");
-            
-            // Update pagination if needed
-            const newTotalPages = Math.max(1, Math.ceil((auctions.length - 1) / ITEMS_PER_PAGE));
-            setTotalPagesAuctions(newTotalPages);
-            if (currentPageAuctions > newTotalPages) {
-                setCurrentPageAuctions(newTotalPages);
-            }
-        } catch (error) {
-            console.error("Error deleting auction:", error);
-            if (error.response?.data?.message) {
-                setError(`Failed to delete auction: ${error.response.data.message}`);
-            } else {
-                setError("Failed to delete auction. Please try again.");
-            }
-        }
-    }, [auctions.length, currentPageAuctions, fetchWithAuth]);
+    const startIndexAuctions = (currentPageAuctions - 1) * ITEMS_PER_PAGE;
+    const endIndexAuctions = startIndexAuctions + ITEMS_PER_PAGE;
+    const paginatedAuctions = auctions.slice(
+        startIndexAuctions,
+        endIndexAuctions
+    );
 
-    // Calculate paginated data - memoized for performance
-    const paginatedAuctions = useMemo(() => {
-        const startIndex = (currentPageAuctions - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        return auctions.slice(startIndex, endIndex);
-    }, [auctions, currentPageAuctions]);
-    
-    const paginatedBids = useMemo(() => {
-        const startIndex = (currentPageBids - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        return bids.slice(startIndex, endIndex);
-    }, [bids, currentPageBids]);
-    
-    const paginatedWon = useMemo(() => {
-        const startIndex = (currentPageWon - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        return wonAuctions.slice(startIndex, endIndex);
-    }, [wonAuctions, currentPageWon]);
+    const startIndexBids = (currentPageBids - 1) * ITEMS_PER_PAGE;
+    const endIndexBids = startIndexBids + ITEMS_PER_PAGE;
+    const paginatedBids = bids.slice(startIndexBids, endIndexBids);
 
-    // Format date for display
-    const formatDate = useCallback((dateString) => {
-        const options = { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        };
-        return new Date(dateString).toLocaleDateString(undefined, options);
-    }, []);
+    const startIndexWon = (currentPageWon - 1) * ITEMS_PER_PAGE;
+    const endIndexWon = startIndexWon + ITEMS_PER_PAGE;
+    const paginatedWon = wonAuctions.slice(startIndexWon, endIndexWon);
 
-    // Check if auction has ended
-    const isAuctionEnded = useCallback((endDate) => {
-        return new Date(endDate) < new Date();
-    }, []);
-
-    // Loading state
-    if (loading) {
+    if (!user) {
         return (
             <div className="flex items-center justify-center h-screen bg-gray-900">
                 <div className="w-32 h-32 border-t-2 border-b-2 border-purple-500 rounded-full animate-spin"></div>
             </div>
         );
     }
-
-    // Not logged in state
-    if (!user) {
-        return (
-            <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white">
-                <h2 className="text-2xl mb-4">Please log in to view your profile</h2>
-                <Link to="/login" className="px-6 py-3 bg-purple-600 rounded-lg hover:bg-purple-700">
-                    Log In
-                </Link>
-            </div>
-        );
-	}
 
 	return (
 		<div className="min-h-screen px-4 py-12 text-gray-300 bg-gray-900 sm:px-6 lg:px-8">
