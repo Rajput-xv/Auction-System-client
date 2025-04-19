@@ -1,61 +1,35 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext"; // Add this import
 
 const CreateAuctionItem = () => {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [startingBid, setStartingBid] = useState("");
-    const [endDate, setEndDate] = useState("");
-    const [error, setError] = useState("");
-    const navigate = useNavigate();
-    const { user } = useAuth(); // Get user from context
+	const [title, setTitle] = useState("");
+	const [description, setDescription] = useState("");
+	const [startingBid, setStartingBid] = useState("");
+	const [endDate, setEndDate] = useState("");
+	const [error, setError] = useState("");
+	const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		
-		// Convert values to proper types
-		const numericStartingBid = parseFloat(startingBid);
-		if (isNaN(numericStartingBid) || numericStartingBid <= 0) {
-			setError("Starting bid must be a positive number");
-			return;
-		}
-	
-		if (new Date(endDate) < new Date()) {
-			setError("End date must be in the future");
-			return;
-		}
-	
-		try {
-			const token = document.cookie
-				.split('; ')
-				.find(row => row.startsWith('jwt='))?.split('=')[1];
-	
-			const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-			const res = await axios.post(
-				`${apiUrl}/api/auctions`,
-				{
-					title,
-					description,
-					startingBid: numericStartingBid,
-					endDate: new Date(endDate).toISOString()
-				},
-				{
-					withCredentials: true,
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${token}`
+		const token = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("jwt="))
+			?.split("=")[1];
+		if (token) {
+			try {
+				await axios.post(
+					import.meta.env.VITE_API_URL+"/api/auctions",
+					{ title, description, startingBid, endDate },
+					{
+						headers: { Authorization: `Bearer ${token}` },
 					}
-				}
-			);
-	
-			if (res.status === 201) {
+				);
 				navigate("/profile");
+			} catch (err) {
+				setError("Failed to create auction. Please try again.");
+				console.error(err);
 			}
-		} catch (err) {
-			setError(err.response?.data?.message || "Failed to create auction. Please try again.");
-			console.error("Creation error:", err);
 		}
 	};
 

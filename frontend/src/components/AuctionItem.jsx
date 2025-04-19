@@ -55,22 +55,14 @@ function AuctionItem() {
 
 		const fetchWinner = async () => {
 			try {
-			  const token = document.cookie
-				.split("; ")
-				.find((row) => row.startsWith("jwt="))
-				?.split("=")[1];
-				
-			  const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/auctions/winner/${id}`, {
-				headers: { 
-				  Authorization: `Bearer ${token}` 
-				}
-			  });
-			  setWinner(res.data.winner);
+				const res = await axios.get(import.meta.env.VITE_API_URL+`/api/auctions/winner/${id}`);
+				setWinner(res.data.winner);
 			} catch (error) {
-			  console.error("Error fetching auction winner:", error);
-			  setWinner(null); // Handle error state appropriately
+				if (error.response.data.winner !== "") {
+					console.error("Error fetching auction winner:", error);
+				}
 			}
-		  };
+		};
 
 		fetchAuctionItem();
 		fetchUser();
@@ -78,24 +70,17 @@ function AuctionItem() {
 	}, [id]);
 
 	useEffect(() => {
-		// Update fetchBids function
 		const fetchBids = async () => {
 			setLoadingBids(true);
 			try {
-				const token = document.cookie
-					.split("; ")
-					.find((row) => row.startsWith("jwt="))
-					?.split("=")[1];
-					
-				const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/bids/${id}`, {
-					withCredentials: true,
-					headers: {
-						Authorization: `Bearer ${token}`
-					}
-				});
-				const sortedBids = res.data.sort((a, b) => b.bidAmount - a.bidAmount);
+				const res = await axios.get(import.meta.env.VITE_API_URL+`/api/bids/${id}`);
+				const sortedBids = res.data.sort(
+					(a, b) => b.bidAmount - a.bidAmount
+				);
 				setBids(sortedBids);
-				setTotalPages(Math.ceil(sortedBids.length / ITEMS_PER_PAGE) || 0);
+				setTotalPages(
+					Math.ceil(sortedBids.length / ITEMS_PER_PAGE) || 0
+				);
 			} catch (error) {
 				console.error("Error fetching bids:", error);
 			} finally {
