@@ -39,7 +39,6 @@ function AuctionItem() {
         if (!token) {
             throw new Error("Authentication required");
         }
-
         try {
             const config = {
                 method,
@@ -107,7 +106,6 @@ function AuctionItem() {
                 setLoadingBids(false);
             }
         };
-
         fetchData();
     }, [id, isLoggedIn, navigate]);
 
@@ -175,7 +173,7 @@ function AuctionItem() {
             <div className="max-w-4xl p-8 mx-auto mt-10 text-white bg-gray-900 rounded-lg shadow-lg">
                 <div className="p-4 text-center text-red-500">
                     <p className="text-xl">{error}</p>
-                    <button 
+                    <button
                         onClick={() => window.location.reload()}
                         className="px-4 py-2 mt-4 text-white bg-indigo-600 rounded hover:bg-indigo-700"
                     >
@@ -202,8 +200,9 @@ function AuctionItem() {
         countdown.minutes <= 0 &&
         countdown.seconds <= 0;
     
-    // Check if current user is the creator of the auction
-    const isCreator = authUser && auctionItem.createdBy === authUser.id;
+    // Fixed: Compare string representations of IDs to avoid type issues
+    const isCreator = authUser && auctionItem.createdBy && 
+                     (auctionItem.createdBy.toString() === authUser.id.toString());
 
     return (
         <div className="max-w-4xl p-8 mx-auto mt-10 text-white bg-gray-900 rounded-lg shadow-lg">
