@@ -7,14 +7,27 @@ export const AuthProvider = ({ children }) => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     useEffect(() => {
-        const checkAuth = () => {
-            const token = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('jwt='))?.split('=')[1];
-            setIsLoggedIn(!!token);
-        };
-        checkAuth();
-    }, []);
+		const checkAuth = async () => {
+			const token = document.cookie
+				.split('; ')
+				.find(row => row.startsWith('jwt='))?.split('=')[1];
+			
+			if (token) {
+				try {
+					const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+					const res = await axios.get(`${apiUrl}/api/users/me`, {
+						withCredentials: true
+					});
+					setUser(res.data);
+					setIsLoggedIn(true);
+				} catch (err) {
+					console.error('Token validation failed:', err);
+					logout();
+				}
+			}
+		};
+		checkAuth();
+	}, []);
 
     const login = (userData) => {
         setUser(userData);

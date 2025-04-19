@@ -18,23 +18,31 @@ const BidForm = () => {
 		fetchAuctionItem();
 	}, [id]);
 
-	const handleBid = async (e) => {
-		e.preventDefault();
-		try {
-			const token = document.cookie
-				.split("; ")
-				.find((row) => row.startsWith("jwt="))
-				?.split("=")[1];
-			await axios.post(
-				import.meta.env.VITE_API_URL+"/api/bids",
-				{ auctionItemId: id, bidAmount },
-				{ headers: { Authorization: `Bearer ${token}` } }
-			);
-			navigate(`/auction/${id}`);
-		} catch (err) {
-			console.error(err);
-		}
-	};
+	// Modify handleBid function
+  const handleBid = async (e) => {
+    e.preventDefault();
+    try {
+        const token = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("jwt="))
+            ?.split("=")[1];
+            
+        await axios.post(
+            `${import.meta.env.VITE_API_URL}/api/bids`,
+            { auctionItemId: id, bidAmount },
+            {
+                withCredentials: true,
+                headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+        navigate(`/auction/${id}`);
+    } catch (err) {
+        console.error(err);
+    }
+  };
 
 	if (!auctionItem) return <div>Loading...</div>;
 

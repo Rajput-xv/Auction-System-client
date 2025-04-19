@@ -18,21 +18,23 @@ function Profile() {
     const [totalPagesWon, setTotalPagesWon] = useState(1);
 
     const fetchWithAuth = async (url, method = "GET", body = {}) => {
-        const token = document.cookie
-            .split("; ")
-            .find((row) => row.startsWith("jwt="))
-            ?.split("=")[1];
-        
-        if (!token) return null;
-
-        try {
-            const res = await axios({
-                url,
-                method,
-                data: body,
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return res.data;
+		const token = document.cookie
+			.split("; ")
+			.find((row) => row.startsWith("jwt="))
+			?.split("=")[1];
+		
+		try {
+			const res = await axios({
+				url,
+				method,
+				data: body,
+				withCredentials: true,
+				headers: { 
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				}
+			});
+			return res.data;
         } catch (error) {
             console.error(`Error fetching ${url}:`, error);
             if (error.response?.status === 401) {
@@ -49,28 +51,24 @@ function Profile() {
             
             // Fetch auctions
             const auctionData = await fetchWithAuth(`${apiUrl}/api/auctions/user`);
-            if (auctionData) {
-                setAuctions(auctionData.auctionItems);
-                setTotalPagesAuctions(
-                    Math.ceil(auctionData.auctionItems.length / ITEMS_PER_PAGE)
-                );
-            }
+			if (auctionData) {
+				setAuctions(auctionData.auctionItems || []);
+				setTotalPagesAuctions(Math.ceil((auctionData.auctionItems || []).length / ITEMS_PER_PAGE));
+			}
 
-            // Fetch bids
-            const bidData = await fetchWithAuth(`${apiUrl}/api/bids/user`);
-            if (bidData) {
-                setBids(bidData.bids);
-                setTotalPagesBids(Math.ceil(bidData.bids.length / ITEMS_PER_PAGE));
-            }
+			// Fetch bids
+			const bidData = await fetchWithAuth(`${apiUrl}/api/bids/user`);
+			if (bidData) {
+				setBids(bidData.bids || []);
+				setTotalPagesBids(Math.ceil((bidData.bids || []).length / ITEMS_PER_PAGE));
+			}
 
-            // Fetch won auctions
-            const wonData = await fetchWithAuth(`${apiUrl}/api/auctions/won`);
-            if (wonData) {
-                setWonAuctions(wonData.wonAuctions);
-                setTotalPagesWon(
-                    Math.ceil(wonData.wonAuctions.length / ITEMS_PER_PAGE)
-                );
-            }
+			// Fetch won auctions
+			const wonData = await fetchWithAuth(`${apiUrl}/api/auctions/won`);
+			if (wonData) {
+				setWonAuctions(wonData.wonAuctions || []);
+				setTotalPagesWon(Math.ceil((wonData.wonAuctions || []).length / ITEMS_PER_PAGE));
+			}
         };
 
         if (user) {
@@ -257,12 +255,11 @@ function Profile() {
 										>
 											<div className="p-6">
 												<h3 className="mb-3 text-2xl font-bold text-white">
-													{bid.auctionItem.title}
+													{bid.auctionItem?.title}
 												</h3>
 												<p className="mb-4 text-gray-300">
 													{
-														bid.auctionItem
-															.description
+														bid.auctionItem?.description
 													}
 												</p>
 												<p className="mb-2 text-lg">

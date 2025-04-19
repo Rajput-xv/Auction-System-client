@@ -13,10 +13,16 @@ function AuctionList() {
 
 	useEffect(() => {
 		const fetchAuctionItems = async () => {
-			const res = await axios.get(import.meta.env.VITE_API_URL+"/api/auctions");
-			setAuctionItems(res.data);
-			setSearchResults(res.data);
-			setTotalPages(Math.ceil(res.data.length / ITEMS_PER_PAGE));
+			try {
+				const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/auctions`, {
+					withCredentials: true
+				});
+				setAuctionItems(res.data);
+				setSearchResults(res.data);
+				setTotalPages(Math.ceil(res.data.length / ITEMS_PER_PAGE));
+			} catch (error) {
+				console.error("Error fetching auctions:", error);
+			}
 		};
 		fetchAuctionItems();
 	}, []);
