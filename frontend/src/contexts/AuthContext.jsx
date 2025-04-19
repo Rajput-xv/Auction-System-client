@@ -1,24 +1,5 @@
-<<<<<<< HEAD
-import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
-
-// Create the context
-const AuthContext = createContext(null);
-
-// Create a custom hook for using the auth context
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-};
-
-export default AuthContext;
-=======
 import { createContext, useContext, useState, useEffect } from "react";
-
 export const AuthContext = createContext();
->>>>>>> parent of a6d6d02 (new update)
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);

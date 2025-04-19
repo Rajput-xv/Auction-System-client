@@ -32,83 +32,6 @@ function AuctionItem() {
 			}
 		};
 
-<<<<<<< HEAD
-    // Helper function for authenticated requests
-    const authRequest = async (url, method = "GET", data = null) => {
-        const token = getToken();
-        if (!token) {
-            throw new Error("Authentication required");
-        }
-        try {
-            const config = {
-                method,
-                url,
-                headers: { Authorization: `Bearer ${token}` },
-            };
-            
-            if (data) {
-                config.data = data;
-            }
-            
-            const response = await axios(config);
-            return response.data;
-        } catch (error) {
-            if (error.response?.status === 401) {
-                // Handle authentication errors
-                navigate("/login");
-            }
-            throw error;
-        }
-    };
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
-                
-                // Fetch auction item (doesn't require auth)
-                const itemResponse = await axios.get(`${apiUrl}/api/auctions/${id}`);
-                setAuctionItem(itemResponse.data);
-                
-                // Fetch bids if user is logged in
-                if (isLoggedIn) {
-                    try {
-                        const bidsResponse = await authRequest(`${apiUrl}/api/bids/${id}`);
-                        const sortedBids = bidsResponse.sort((a, b) => b.bidAmount - a.bidAmount);
-                        setBids(sortedBids);
-                        setTotalPages(Math.ceil(sortedBids.length / ITEMS_PER_PAGE) || 0);
-                    } catch (bidError) {
-                        console.error("Error fetching bids:", bidError);
-                        // Don't fail the whole component if bids can't be fetched
-                    }
-                }
-                
-                // Try to fetch winner if auction has ended
-                const endDate = new Date(itemResponse.data.endDate);
-                const now = new Date();
-                if (endDate <= now) {
-                    try {
-                        const winnerResponse = await axios.get(`${apiUrl}/api/auctions/winner/${id}`);
-                        setWinner(winnerResponse.data.winner);
-                    } catch (winnerError) {
-                        // Don't fail if winner can't be fetched
-                        console.error("Error fetching winner:", winnerError);
-                    }
-                }
-                
-                setError(null);
-            } catch (error) {
-                console.error("Error fetching auction data:", error);
-                setError("Failed to load auction details. Please try again later.");
-            } finally {
-                setLoading(false);
-                setLoadingBids(false);
-            }
-        };
-        fetchData();
-    }, [id, isLoggedIn, navigate]);
-=======
 		const fetchUser = async () => {
 			const token = document.cookie
 				.split("; ")
@@ -164,7 +87,6 @@ function AuctionItem() {
 				setLoadingBids(false);
 			}
 		};
->>>>>>> parent of a6d6d02 (new update)
 
 		fetchBids();
 	}, [id]);
@@ -198,23 +120,6 @@ function AuctionItem() {
 		return () => clearInterval(interval);
 	}, [auctionItem]);
 
-<<<<<<< HEAD
-    if (error) {
-        return (
-            <div className="max-w-4xl p-8 mx-auto mt-10 text-white bg-gray-900 rounded-lg shadow-lg">
-                <div className="p-4 text-center text-red-500">
-                    <p className="text-xl">{error}</p>
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="px-4 py-2 mt-4 text-white bg-indigo-600 rounded hover:bg-indigo-700"
-                    >
-                        Try Again
-                    </button>
-                </div>
-            </div>
-        );
-    }
-=======
 	const handleDelete = async () => {
 		try {
 			await axios.delete(import.meta.env.VITE_API_URL+`/api/auctions/${id}`);
@@ -223,7 +128,6 @@ function AuctionItem() {
 			console.error("Error deleting auction item:", error);
 		}
 	};
->>>>>>> parent of a6d6d02 (new update)
 
 	const handlePageChange = (page) => {
 		if (page > 0 && page <= totalPages) {
@@ -231,23 +135,9 @@ function AuctionItem() {
 		}
 	};
 
-<<<<<<< HEAD
-    const highestBid =
-        bids.length > 0 ? Math.max(...bids.map((bid) => bid.bidAmount)) : 0;
-    const isAuctionEnded =
-        countdown.days <= 0 &&
-        countdown.hours <= 0 &&
-        countdown.minutes <= 0 &&
-        countdown.seconds <= 0;
-    
-    // Fixed: Compare string representations of IDs to avoid type issues
-    const isCreator = authUser && auctionItem.createdBy && 
-                     (auctionItem.createdBy.toString() === authUser.id.toString());
-=======
 	const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
 	const endIndex = startIndex + ITEMS_PER_PAGE;
 	const paginatedBids = bids.slice(startIndex, endIndex);
->>>>>>> parent of a6d6d02 (new update)
 
 	if (!auctionItem || !user) {
 		return <p className="mt-10 text-center text-white">Loading...</p>;
